@@ -1,57 +1,71 @@
 import argparse
-import re
 import csv
 from sys import exit
 
 
-def main(file_data, file_seq):
+def find_num(str, find):
+    num = 0
+    old = str.find(find)
+    count = 0
+    result = 0
+    flag = 0
+    while 1:
+        num = str.find(find, num + flag)
+        flag = 1
+        if num < 0:
+            break
+        else:
+            if (num - old) > len(find):
+                count = 1
+            else:
+                count += 1
+            old = num
+            if count > result:
+                result = count
+    return result
 
-    print(file_data + ' ' + file_seq)
 
-    # open database
+def main(database, dna_file):
+    dna = ''
+
     try:
-        db_handler = open(file_data, 'r')
-    except IOError:
-            print('ERROR: can\'t open file ' + file_data)
-            exit(0)
-
-    database = list(csv.DictReader(db_handler))
-    search_dict = {}
+        with open(dna_file, 'r') as file:
+            for line in file:
+                dna += line.strip()
+    except Exception as e:
+        print('ERROR: ', e)
 
     try:
-        with open(file_seq, 'r') as dna:
-            for line in dna:
-                for id, item in enumerate(database[0].keys()):
-                    if item == 'name':
-                        continue
-                    res = re.findall(item, line)
-                    search_dict[item] = str(len(res))
-    except IOError:
-        print('ERROR: can\'t open file ' + file_seq)
-        exit(0)
+        with open(database, 'r') as file:
+            reader = csv.reader(file)
+            headers = next(reader)
+            people = []
+            dna_list = []
 
-    print('dict :  ', end='')
-    print(search_dict, end='\n\n')
+            for row in reader:
+                people.append(list(row))
 
-    for man in database:
-        print(man)
-        counter = 0
-        for key, value in man.items():
-            if key == 'name':
-                name = value
-            elif search_dict[key] == value:
-                counter += 1
-        if counter == len(man) - 1:
-            print(name)
-            exit(0)
+            for item in range(1, len(headers)):
+                dna_list.append(str(find_num(dna, headers[item])))
 
-    db_handler.close()
-    exit(0)
+            for man in people:
+                counter = 0
+                for item in range(1, len(man)):
+                    if man[item] == dna_list[item-1]:
+                        counter += 1
+
+                if counter == len(dna_list):
+                    return man[0]
+                    exit(0)
+            return 'No match'
+
+    except Exception as e:
+        print('ERROR: ', e)
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Program that identifies a person based on their DNA',
-                                     usage='python %(prog)s data.csv sequence.txt')
-    parser.add_argument('database', type=str, help='name of a CSV file containing the STR counts')
-    parser.add_argument('sequence', type=str, help='name of a text file containing the DNA sequence to identify')
+    parser = argparse.ArgumentParser(description='DNA', usage='python dna.py data.csv sequence.txt')
+    parser.add_argument('database', type=str, action='store')
+    parser.add_argument('dna_file', type=str, action='store')
     args = parser.parse_args()
-    main(args.database, args.sequence)
+    print(main(args.database, args.dna_file))
