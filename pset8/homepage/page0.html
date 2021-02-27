@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <<head>
+        <link href="styles.css" rel="stylesheet">
+
+        <script>
+            document.addEventListener('DOMContentLoaded',function() {
+                  let lamp = document.querySelectorAll('.lamp');
+                  for (let i = 0; i < lamp.length; i++) {
+                      lamp[i].addEventListener('click', function() {
+                          if (lamp[i].src.search("images/lamp_light.jpg") > 0) {
+                              lamp[i].src = "images/lamp_dark.jpg";
+                          }
+                          else if (lamp[i].src.search("images/lamp_dark.jpg") > 0) {
+                              lamp[i].src = "images/lamp_light.jpg";
+                          }
+                    })
+                  }
+              });
+        </script>
+
+    </head>
+    <body>
+
+        <div class="lamps_table">
+
+            <img class="lamp" id="lamp0" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp1" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp2" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp3" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp4" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp5" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp6" src="images/lamp_dark.jpg">
+            <img class="lamp" id="lamp7" src="images/lamp_dark.jpg">
+
+        </div>
+
+    </body>
+</html>

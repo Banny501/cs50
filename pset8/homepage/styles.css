@@ -1,0 +1,16 @@
+body {
+    background-color: black;
+}
+
+.lamp
+{
+    height: 100px;
+    width:  100px;
+}
+
+.lamps_table
+{
+    background-color:black;
+    color:white;
+    padding:20px;
+}
