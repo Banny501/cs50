@@ -3,36 +3,28 @@
     <<head>
         <link href="styles.css" rel="stylesheet">
 
-        <script>
-            document.addEventListener('DOMContentLoaded',function() {
-                  let lamp = document.querySelectorAll('.lamp');
-                  for (let i = 0; i < lamp.length; i++) {
-                      lamp[i].addEventListener('click', function() {
-                          if (lamp[i].src.search("images/lamp_light.jpg") > 0) {
-                              lamp[i].src = "images/lamp_dark.jpg";
-                          }
-                          else if (lamp[i].src.search("images/lamp_dark.jpg") > 0) {
-                              lamp[i].src = "images/lamp_light.jpg";
-                          }
-                    })
-                  }
-              });
-        </script>
-
-
-          <a href="index.html">Home</a>
-          <a href="page0.html">Prev</a>
-          <a href="page2.html">Next</a>
+        <a href="index.html">Home</a>
+        <a href="page2.html">Next</a>
 
     </head>
     <body>
+        <div>
+            <p>Turn on all lamps</p>
+        </div>
 
         <div class="lamps_table">
-            <img class="lamp" id="lamp0" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp1" src="images/lamp_light.jpg">
-            <img class="lamp" id="lamp2" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp3" src="images/lamp_light.jpg">
+            <img class="lamp" id="lamp0" >
+            <img class="lamp" id="lamp1" >
+            <img class="lamp" id="lamp2" >
+            <img class="lamp" id="lamp3" >
+        </div>
+        <div>
+            <button class="butt">Check</button>
         </div>
 
     </body>
+
+    <script type="text/javascript" src="classes.js"></script>
+    <script type="text/javascript" src="script_page1.js"></script>
+
 </html>
