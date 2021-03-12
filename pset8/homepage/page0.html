@@ -3,37 +3,130 @@
     <<head>
         <link href="styles.css" rel="stylesheet">
 
-        <script>
-            document.addEventListener('DOMContentLoaded',function() {
-                  let lamp = document.querySelectorAll('.lamp');
-                  for (let i = 0; i < lamp.length; i++) {
-                      lamp[i].addEventListener('click', function() {
-                          if (lamp[i].src.search("images/lamp_light.jpg") > 0) {
-                              lamp[i].src = "images/lamp_dark.jpg";
-                          }
-                          else if (lamp[i].src.search("images/lamp_dark.jpg") > 0) {
-                              lamp[i].src = "images/lamp_light.jpg";
-                          }
-                    })
-                  }
-              });
-        </script>
+        <a href="index.html">Home</a>
+        <a href="page.html">Next</a>
 
     </head>
     <body>
 
+        <p>What is </p>
+        <p id="X">X</p>
+        <p> plus </p>
+        <p id="Y">Y</p>
+        <p id="deb">lol</p>
+
         <div class="lamps_table">
-
-            <img class="lamp" id="lamp0" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp1" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp2" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp3" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp4" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp5" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp6" src="images/lamp_dark.jpg">
-            <img class="lamp" id="lamp7" src="images/lamp_dark.jpg">
-
+            <img class="lamp" id="lamp0" >
+            <img class="lamp" id="lamp1" >
+            <img class="lamp" id="lamp2" >
+            <img class="lamp" id="lamp3" >
+            <img class="lamp" id="lamp4" >
+            <img class="lamp" id="lamp5" >
+            <img class="lamp" id="lamp6" >
+            <img class="lamp" id="lamp7" >
+        </div>
+        <div>
+            <button class="butt">Check</button>
         </div>
 
     </body>
+
+    <script>
+
+    const light_file = "images/lamp_light.jpg"
+    const dark_file = "images/lamp_dark.jpg"
+
+    class Lamp
+    {
+      constructor(val, num)
+      {
+        if (val == 1)
+        {
+          this.image = light_file;
+          this.value = '1';
+          document.getElementById('lamp'+num).src = light_file;
+        }
+        else if (val == 0)
+        {
+          this.image = dark_file;
+          this.value = '0';
+          document.getElementById('lamp'+num).src = dark_file;
+        }
+      }
+
+      change (val, num)
+      {
+        if (val == 1)
+        {
+          this.image = light_file;
+          this.value = '1';
+          document.getElementById('lamp'+num).src = light_file;
+        }
+        else if (val == 0)
+        {
+          this.image = dark_file;
+          this.value = '0';
+          document.getElementById('lamp'+num).src = dark_file;
+        }
+      }
+
+      invert (num)
+      {
+        if (this.image == light_file)
+        {
+          this.image = dark_file;
+          this.value = '0';
+          document.getElementById('lamp'+num).src = dark_file;
+        }
+        else if (this.image == dark_file)
+        {
+          this.image = light_file;
+          this.value = '1';
+          document.getElementById('lamp'+num).src = light_file;
+        }
+      }
+    }
+
+    var x = Math.floor(Math.random() * 128);
+    var y = Math.floor(Math.random() * 128);
+    var ansver = (x + y).toString(2).padStart(8,0)
+    var x = x.toString(2).padStart(8,0);
+    var y = y.toString(2).padStart(8,0);
+    var res = Math.floor(Math.random() * 256).toString(2).padStart(8,0)
+    document.getElementById("X").innerHTML = x;
+    document.getElementById("Y").innerHTML = y;
+
+    document.getElementById("deb").innerHTML = ansver; //DEBUG
+
+    let lamps = [];
+    for (var i = 0; i < res.length; i++)
+    {
+      lamps[i] = new Lamp(res.charAt(i), i);
+    }
+
+
+    document.addEventListener('DOMContentLoaded',function() {
+          let lamp = document.querySelectorAll('.lamp');
+          for (let i = 0; i < lamp.length; i++) {
+              lamp[i].addEventListener('click', function() {
+                  lamps[i].invert(i);
+            })
+          }
+          let check = document.querySelector('.butt');
+          check.addEventListener('click',function() {
+              res = "";
+            for (var i = 0; i < lamps.length; i++) {
+              res += lamps[i].value;
+            }
+            if (res == ansver) {
+              document.getElementById("deb").innerHTML = 'good'; //DEBUG
+            }
+            else {
+              document.getElementById("deb").innerHTML = 'bad'; //DEBUG
+            }
+          })
+      });
+
+    </script>
+
 </html>

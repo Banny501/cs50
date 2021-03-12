@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <<head>
+        <link href="styles.css" rel="stylesheet">
+
+        <a href="index.html">Home</a>
+        <a href="page1.html">Prev</a>
+
+    </head>
+    <body>
+
+      <div class="lamps_table">
+        <img class="lamp" id="lamp3">
+        <img class="lamp" id="lamp2">
+        <img class="lamp" id="lamp1">
+        <img class="lamp" id="lamp0">
+      </div>
+
+    </body>
+
+    <script type="text/javascript">
+
+        const light_file = "images/lamp_light.jpg"
+        const dark_file = "images/lamp_dark.jpg"
+
+        class Lamp
+        {
+          constructor(val)
+          {
+            if (val == 1)
+            {
+              this.image = light_file;
+            }
+            else if (val == 0)
+            {
+              this.image = dark_file;
+            }
+          }
+
+          change (n)
+          {
+            if (n == 1)
+            {
+              this.image = light_file;
+            }
+            else if (n == 0)
+            {
+              this.image = dark_file;
+            }
+          }
+
+          invert ()
+          {
+            if (this.image == light_file)
+            {
+              this.image = dark_file;
+            }
+            else if (this.image == dark_file)
+            {
+              this.image = light_file;
+            }
+          }
+        }
+
+        let lamp0 = new Lamp(1);
+        document.getElementById('lamp0').src = lamp0.image;
+
+    </script>
+
+</html>
