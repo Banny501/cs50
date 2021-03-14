@@ -1,4 +1,3 @@
-
 var x = Math.floor(Math.random() * 8);
 var y = Math.floor(Math.random() * 8);
 var ansver = (x + y).toString(2).padStart(4,0)
