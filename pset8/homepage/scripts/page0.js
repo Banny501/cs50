@@ -12,16 +12,19 @@ for (var i = 0; i < res.length; i++)
 {
   lamps[i] = new Lamp(res.charAt(i), i);
 }
-document.addEventListener('DOMContentLoaded',function() {
+document.addEventListener('DOMContentLoaded',function()
+{
   let lamp = document.querySelectorAll('.lamp');
   for (let i = 0; i < lamp.length; i++) {
-      lamp[i].addEventListener('click', function() {
+      lamp[i].addEventListener('click', function()
+      {
         lamps[i].invert(i);
       })
     }
 
     let check = document.querySelector('.butt');
-    check.addEventListener('click',function() {
+    check.addEventListener('click',function()
+    {
       res = "";
       for (var i = 0; i < lamps.length; i++)
       {
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded',function() {
       }
       if (res == ansver)
       {
-        document.getElementById("answer").innerHTML = "Well done"; 
+        document.getElementById("answer").innerHTML = "Well done";
         document.getElementById("next").innerHTML = "Next";
       }
       else
