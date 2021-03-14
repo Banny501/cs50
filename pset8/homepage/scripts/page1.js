@@ -41,10 +41,11 @@
               res += lamps[i].value;
             }
             if (res == ansver) {
-              document.getElementById("deb").innerHTML = 'good'; //DEBUG
+              document.getElementById("answer").innerHTML = "Well done";
+              document.getElementById("next").innerHTML = "Next";
             }
             else {
-              document.getElementById("deb").innerHTML = 'bad'; //DEBUG
+              document.getElementById("answer").innerHTML = "I don't think so";
             }
           })
       });
