@@ -46,22 +46,54 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    return render_template("index.html")
 
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+
+    if request.method == "POST":
+        # Get forms
+        buy_simbol = request.form.get("symbol")
+        buy_shares = request.form.get("shares")
+
+        # Check forms
+        if not buy_simbol:
+            return apology("Missing Symbol", 400)
+        elif not buy_shares:
+            return apology("Missing Shares", 400)
+        elif not buy_shares.isdigit():
+            return apology("wrong shares", 400)
+
+        comp_quote = lookup(buy_simbol)
+        if not lookup(buy_simbol):
+            return apology("invalid symbol", 400)
+
+        usr_cash = db.execute("SELECT cash FROM users WHERE id=?", session["user_id"])[0]["cash"]
+        app.logger.debug("usr_cash : %d", usr_cash)
+
+        app.logger.debug("comp_quote : ")
+        app.logger.debug(comp_quote)
+
+        if usr_cash < (int(buy_shares) * comp_quote["price"]):
+            return apology("can't afford", 400)
+
+        flash("Bought!")
+        return redirect("/")
+    else:
+        return render_template("buy.html")
 
 
 @app.route("/history")
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
-
+    if request.method == "POST":
+        return apology("TODO")
+    else:
+        return render_template("history.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -114,20 +146,52 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-    return apology("TODO")
+
+    if request.method == "POST":
+        return apology("TODO")
+    else:
+        return render_template("quote.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-    return apology("TODO")
+    if request.method == "POST":
+        # Get forms
+        reg_username = request.form.get("username")
+        reg_pass = request.form.get("password")
+        reg_pass_confirmation = request.form.get("confirmation")
+        # Ensure that all was submitted
+        if not reg_username:
+            return apology("must provide username", 403)
+        elif not reg_pass:
+            return apology("must provide password", 403)
+        elif not reg_pass_confirmation:
+            return apology("must provide password twice", 403)
+        elif reg_pass != reg_pass_confirmation:
+            return apology("password and password confirmation must be the same", 403)
+        elif  len(db.execute("SELECT * FROM users WHERE username = ?", reg_username)) > 0:
+            return apology("username is already taken", 403)
+
+        # Write to database
+        db.execute("INSERT INTO users (username ,hash) VALUES (?, ?)", reg_username, generate_password_hash(reg_pass))
+
+        # Login in
+        session["user_id"] = db.execute("SELECT id FROM users WHERE username = ?", reg_username)
+        flash("Registered!")
+        return redirect("/")
+    else:
+        return render_template("register.html")
 
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        return apology("TODO")
+    else:
+        return render_template("sell.html")
 
 
 def errorhandler(e):

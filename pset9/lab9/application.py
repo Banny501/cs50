@@ -3,6 +3,7 @@ import os
 from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 
+
 # Configure application
 app = Flask(__name__)
 
@@ -11,6 +12,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///birthdays.db")
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -32,26 +34,26 @@ def index():
         birthdays = db.execute("SELECT * FROM birthdays")
         return render_template("index.html", birthdays=birthdays)
 
+
 @app.route("/err")
 def err():
     return render_template("err.html", msg="")
 
 
-
 def check_date(month, day):
-    MONTH={
-    1:  31,
-    2:  28,
-    3:  31,
-    4:  30,
-    5:  31,
-    6:  30,
-    7:  31,
-    8:  31,
-    9:  30,
-    10: 31,
-    11: 30,
-    12: 31
+    MONTH = {
+        1:  31,
+        2:  28,
+        3:  31,
+        4:  30,
+        5:  31,
+        6:  30,
+        7:  31,
+        8:  31,
+        9:  30,
+        10: 31,
+        11: 30,
+        12: 31
     }
 
     if month == "" or day == "":
