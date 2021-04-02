@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
@@ -71,17 +72,30 @@ def buy():
         if not lookup(buy_simbol):
             return apology("invalid symbol", 400)
 
-        usr_cash = db.execute("SELECT cash FROM users WHERE id=?", session["user_id"])[0]["cash"]
+        usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
+                                session["user_id"])[0]["cash"]
         app.logger.debug("usr_cash : %d", usr_cash)
-
+        app.logger.debug(session["user_id"])
         app.logger.debug("comp_quote : ")
         app.logger.debug(comp_quote)
 
         if usr_cash < (int(buy_shares) * comp_quote["price"]):
             return apology("can't afford", 400)
-
-        flash("Bought!")
-        return redirect("/")
+        else:
+            usr_cash -= (int(buy_shares) * comp_quote["price"])
+            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, date) \
+                        VALUES (?, ?, ?, ?, ?, ?)", \
+                        session["user_id"], \
+                        comp_quote["name"], \
+                        comp_quote["symbol"], \
+                        int(buy_shares), \
+                        comp_quote["price"], \
+                        datetime.datetime.now() \
+                    )
+            db.execute("UPDATE users SET cash=? WHERE id = ?",\
+                        usr_cash, session["user_id"])
+            flash("Bought!")
+            return redirect("/")
     else:
         return render_template("buy.html")
 
@@ -114,10 +128,12 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        rows = db.execute("SELECT * FROM users WHERE username = ?", \
+                            request.form.get("username"))
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], \
+                                    request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -174,7 +190,8 @@ def register():
             return apology("username is already taken", 403)
 
         # Write to database
-        db.execute("INSERT INTO users (username ,hash) VALUES (?, ?)", reg_username, generate_password_hash(reg_pass))
+        db.execute("INSERT INTO users (username ,hash) VALUES (?, ?)", \
+                    reg_username, generate_password_hash(reg_pass))
 
         # Login in
         session["user_id"] = db.execute("SELECT id FROM users WHERE username = ?", reg_username)
