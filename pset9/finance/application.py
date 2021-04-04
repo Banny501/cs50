@@ -83,15 +83,16 @@ def buy():
             return apology("can't afford", 400)
         else:
             usr_cash -= (int(buy_shares) * comp_quote["price"])
-            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, date) \
-                        VALUES (?, ?, ?, ?, ?, ?)", \
-                        session["user_id"], \
-                        comp_quote["name"], \
-                        comp_quote["symbol"], \
-                        int(buy_shares), \
-                        comp_quote["price"], \
-                        datetime.datetime.now() \
-                    )
+            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, usd_pr, date) \
+                            VALUES (?, ?, ?, ?, ?, ?, ?)", \
+                            session["user_id"], \
+                            comp_quote["name"], \
+                            comp_quote["symbol"], \
+                            int(buy_shares), \
+                            comp_quote["price"], \
+                            usd(comp_quote["price"]), \
+                            datetime.datetime.now() \
+                        )
             db.execute("UPDATE users SET cash=? WHERE id = ?",\
                         usr_cash, session["user_id"])
             flash("Bought!")
@@ -104,10 +105,9 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    if request.method == "POST":
-        return apology("TODO")
-    else:
-        return render_template("history.html")
+    history = db.execute("SELECT * FROM history WHERE user_id=?", session["user_id"])
+    
+    return render_template("history.html", history=history)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
