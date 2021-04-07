@@ -47,14 +47,25 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return render_template("index.html")
+    index_balance = db.execute("SELECT * FROM balance WHERE user_id = ?", session["user_id"])
+    summ_shares = 0
+    for line in index_balance:
+        index_total_cash = lookup(line["symbol"])["price"]
+        summ_shares += index_total_cash
+        line["price"] = usd(index_total_cash)
+        line["total"] = usd(index_total_cash * line["shares"])
+    index_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
+                            session["user_id"])[0]["cash"]
+
+    return render_template("index.html", balance = index_balance, \
+                                         cash = usd(index_usr_cash),\
+                                         total_cash = usd(index_total_cash + index_usr_cash))
 
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
     """Buy shares of stock"""
-
     if request.method == "POST":
         # Get forms
         buy_simbol = request.form.get("symbol")
@@ -67,34 +78,55 @@ def buy():
             return apology("Missing Shares", 400)
         elif not buy_shares.isdigit():
             return apology("wrong shares", 400)
+        elif int(buy_shares) <= 0:
+            return apology("wrong shares", 400)
 
         comp_quote = lookup(buy_simbol)
+        app.logger.debug("LOLOLOLOLOL")
+        app.logger.debug(lookup(buy_simbol)["price"])
         if not lookup(buy_simbol):
             return apology("invalid symbol", 400)
 
-        usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
+        buy_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
                                 session["user_id"])[0]["cash"]
-        app.logger.debug("usr_cash : %d", usr_cash)
-        app.logger.debug(session["user_id"])
-        app.logger.debug("comp_quote : ")
-        app.logger.debug(comp_quote)
 
-        if usr_cash < (int(buy_shares) * comp_quote["price"]):
+        if buy_usr_cash < (int(buy_shares) * comp_quote["price"]):
             return apology("can't afford", 400)
         else:
-            usr_cash -= (int(buy_shares) * comp_quote["price"])
-            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, usd_pr, date) \
+            old_balance = db.execute("SELECT * FROM balance WHERE symbol = ? AND name = ? AND user_id = ?",\
+                                        comp_quote["symbol"], \
+                                        comp_quote["name"], \
+                                        session["user_id"])
+            if not old_balance:
+                db.execute("INSERT INTO balance (user_id, name, symbol, shares) \
+                                VALUES (?, ?, ?, ?)", \
+                                session["user_id"], \
+                                comp_quote["name"], \
+                                comp_quote["symbol"], \
+                                int(buy_shares) )
+            else:
+
+                app.logger.debug("KEK")
+                app.logger.debug(old_balance)
+                db.execute("UPDATE balance SET shares = ? WHERE name=? AND symbol=? AND user_id=?",\
+                                int(buy_shares) + old_balance[0]["shares"], \
+                                comp_quote["name"], \
+                                comp_quote["symbol"], \
+                                session["user_id"] )
+
+            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, total, date) \
                             VALUES (?, ?, ?, ?, ?, ?, ?)", \
                             session["user_id"], \
                             comp_quote["name"], \
                             comp_quote["symbol"], \
                             int(buy_shares), \
                             comp_quote["price"], \
-                            usd(comp_quote["price"]), \
-                            datetime.datetime.now() \
-                        )
+                            comp_quote["price"] * int(buy_shares), \
+                            datetime.datetime.now() )
+
+            buy_usr_cash -= (int(buy_shares) * comp_quote["price"])
             db.execute("UPDATE users SET cash=? WHERE id = ?",\
-                        usr_cash, session["user_id"])
+                            buy_usr_cash, session["user_id"])
             flash("Bought!")
             return redirect("/")
     else:
@@ -105,14 +137,16 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    history = db.execute("SELECT * FROM history WHERE user_id=?", session["user_id"])
-    
+    history = db.execute("SELECT * FROM history WHERE user_id=? ORDER BY date DESC", session["user_id"])
+    for line in history:
+        line["price"] = usd(line["price"])
+    app.logger.debug(history)
     return render_template("history.html", history=history)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
-
     # Forget any user_id
     session.clear()
 
@@ -128,12 +162,10 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", \
-                            request.form.get("username"))
+        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], \
-                                    request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -150,7 +182,6 @@ def login():
 @app.route("/logout")
 def logout():
     """Log user out"""
-
     # Forget any user_id
     session.clear()
 
@@ -162,9 +193,16 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-
     if request.method == "POST":
-        return apology("TODO")
+        quote_shares = lookup(request.form.get("symbol"))
+        if not quote_shares:
+            return apology("Wrong simbol")
+        else:
+            quote_message = "A share of {} ({}) costs {}.".format(
+                                    quote_shares["name"], \
+                                    quote_shares["symbol"], \
+                                    usd(quote_shares["price"]) )
+            return render_template("quote.html", message = quote_message)
     else:
         return render_template("quote.html")
 
@@ -186,7 +224,7 @@ def register():
             return apology("must provide password twice", 403)
         elif reg_pass != reg_pass_confirmation:
             return apology("password and password confirmation must be the same", 403)
-        elif  len(db.execute("SELECT * FROM users WHERE username = ?", reg_username)) > 0:
+        elif len(db.execute("SELECT * FROM users WHERE username = ?", reg_username)) > 0:
             return apology("username is already taken", 403)
 
         # Write to database
@@ -205,10 +243,27 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
+    sell_symbols = db.execute("SELECT symbol FROM balance WHERE user_id=?", session["user_id"])
     if request.method == "POST":
-        return apology("TODO")
+
+        simb_sell = request.form.get("symbol")
+        shar_sell = request.form.get("shares")
+
+        app.logger.debug("simb_sell")
+        app.logger.debug(simb_sell)
+        app.logger.debug(shar_sell)
+        app.logger.debug(sell_symbols)
+
+        if simb_sell in sell_symbols:
+            app.logger.debug("azaza")
+        else:
+            app.logger.debug("gz")
+
+
+        flash("Sold!")
+        return redirect("/")
     else:
-        return render_template("sell.html")
+        return render_template("sell.html", symbols=sell_symbols)
 
 
 def errorhandler(e):

@@ -1,9 +1,44 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Quote
+    portfolio
 {% endblock %}
 
 {% block main %}
-  TODO
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Shares</th>
+            <th>Price</th>
+            <th>TOTAL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for line in balance %}
+            <tr>
+                <td>{{ line.symbol }}</td>
+                <td>{{ line.name }}</td>
+                <td>{{ line.shares }}</td>
+                <td>{{ line.price }}</td>
+                <td>{{ line.total }}</td>
+            </tr>
+        {% endfor %}
+          <tr>
+              <td>CASH</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>{{ cash }}</td>
+          </tr>
+          <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>{{ total_cash }}</td>
+          </tr>
+    </tbody>
+</table>
 {% endblock %}
