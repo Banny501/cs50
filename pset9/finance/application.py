@@ -51,19 +51,12 @@ def index():
     summ_shares = 0
     for line in index_balance:
         index_share_list = lookup(line["symbol"])
-        app.logger.debug("line[symbol]")
-        app.logger.debug(line["symbol"])
-        app.logger.debug("lookup")
-        app.logger.debug(lookup(line["symbol"]))
-        app.logger.debug("index_share_list")
-        app.logger.debug(index_share_list)
         if not index_share_list:
             return apology("Not find symbol", line["symbol"])
         summ_shares += float(index_share_list["price"])
         line["price"] = usd(index_share_list["price"])
         line["total"] = usd(index_share_list["price"] * line["shares"])
-    index_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
-                                        session["user_id"])[0]["cash"]
+    index_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", session["user_id"])[0]["cash"]
 
     return render_template("index.html", balance = index_balance, \
                                          cash = usd(index_usr_cash),\
@@ -93,16 +86,15 @@ def buy():
         if not comp_quote:
             return apology("invalid symbol", 400)
 
-        buy_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", \
-                                session["user_id"])[0]["cash"]
+        buy_usr_cash = db.execute("SELECT cash FROM users WHERE id=?", session["user_id"])[0]["cash"]
 
         if buy_usr_cash < (int(buy_shares) * comp_quote["price"]):
             return apology("can't afford", 400)
         else:
             old_balance = db.execute("SELECT * FROM balance WHERE symbol = ? AND name = ? AND user_id = ?",\
-                                        comp_quote["symbol"], \
-                                        comp_quote["name"], \
-                                        session["user_id"])
+                                            comp_quote["symbol"], \
+                                            comp_quote["name"], \
+                                            session["user_id"])
             if not old_balance:
                 db.execute("INSERT INTO balance (user_id, name, symbol, shares) \
                                 VALUES (?, ?, ?, ?)", \
@@ -128,8 +120,7 @@ def buy():
                             datetime.datetime.now() )
 
             buy_usr_cash -= (int(buy_shares) * comp_quote["price"])
-            db.execute("UPDATE users SET cash=? WHERE id = ?",\
-                            buy_usr_cash, session["user_id"])
+            db.execute("UPDATE users SET cash=? WHERE id = ?", buy_usr_cash, session["user_id"])
             flash("Bought!")
             return redirect("/")
     else:
@@ -263,44 +254,50 @@ def sell():
             return apology("simbol not found", simb_sell)
 
         sell_comp_quote = lookup(simb_sell)
-        sell_usr_cash = db.execute("SELECT cash FROM users WHERE id = ?", \
-                                            session["user_id"])[0]["cash"]
-        sell_usr_balance = db.execute("SELECT * FROM balance WHERE user_id = ?",\
-                                            session["user_id"])
+        sell_usr_cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
+        sell_usr_balance = db.execute("SELECT * FROM balance WHERE user_id = ?", session["user_id"])
 
-        app.logger.debug("DEBUG SELL:")
-        app.logger.debug(simb_sell)
-        app.logger.debug(shar_sell)
-        app.logger.debug(sell_comp_quote)
-        app.logger.debug(sell_usr_cash)
-        app.logger.debug(sell_usr_balance)
+        sell_balance_counter = 0
+        for item in sell_usr_balance:
+            if sell_comp_quote["name"] == item["name"] and sell_comp_quote["symbol"] == simb_sell:
+                sell_balance_counter = int(item["shares"])
 
-        # Update cash
-        #db.execute("UPDATE users SET cash = ? WHERE id = ?", \
-        #                    float(sell_usr_cash) + (int(shar_sell) * int(sell_comp_quote["price"])),\
-        #                    session["user_id"] )
+        if sell_balance_counter == 0:
+            return apology("Not found", 400)
+        elif sell_balance_counter < int(shar_sell):
+            return apology("Too many shares", 400)
+        else:
+            # Update balance
+            if sell_balance_counter == int(shar_sell):
+                db.execute("DELETE FROM balance WHERE user_id=? AND symbol=? AND name=?",\
+                                session["user_id"], \
+                                sell_comp_quote["symbol"], \
+                                sell_comp_quote["name"] )
+            else:
+                db.execute("UPDATE balance SET shares = ? WHERE name=? AND symbol=? AND user_id=?",\
+                                sell_balance_counter - int(shar_sell), \
+                                sell_comp_quote["name"], \
+                                sell_comp_quote["symbol"], \
+                                session["user_id"] )
 
-        # Update balance
-        #db.execute("UPDATE balance SET shares = ? WHERE name=? AND symbol=? AND user_id=?",\
-        #                int(buy_shares) + old_balance[0]["shares"], \
-        #                comp_quote["name"], \
-        #                comp_quote["symbol"], \
-        #                session["user_id"] )
+            # Update cash
+            db.execute("UPDATE users SET cash = ? WHERE id = ?", \
+                            float(sell_usr_cash) + (int(shar_sell) * float(sell_comp_quote["price"])),\
+                            session["user_id"] )
 
-        # Update history
-        db.execute("INSERT INTO history (user_id, name, symbol, shares, price, total, date) \
-                        VALUES (?, ?, ?, ?, ?, ?, ?)", \
-                        session["user_id"], \
-                        sell_comp_quote["name"], \
-                        sell_comp_quote["symbol"], \
-                        int(shar_sell) * (-1), \
-                        sell_comp_quote["price"], \
-                        sell_comp_quote["price"] * int(shar_sell), \
-                        datetime.datetime.now() )
+            # Update history
+            db.execute("INSERT INTO history (user_id, name, symbol, shares, price, total, date) \
+                            VALUES (?, ?, ?, ?, ?, ?, ?)", \
+                            session["user_id"], \
+                            sell_comp_quote["name"], \
+                            sell_comp_quote["symbol"], \
+                            int(shar_sell) * (-1), \
+                            sell_comp_quote["price"], \
+                            sell_comp_quote["price"] * int(shar_sell), \
+                            datetime.datetime.now() )
 
-
-        flash("Sold!")
-        return redirect("/")
+            flash("Sold!")
+            return redirect("/")
     else:
         return render_template("sell.html", symbols=sell_symbols)
 
