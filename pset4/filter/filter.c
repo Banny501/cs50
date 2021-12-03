@@ -28,7 +28,11 @@ int main(int argc, char *argv[])
     // Ensure proper usage
     if (argc != optind + 2)
     {
-        fprintf(stderr, "Usage: filter [flag] infile outfile\n");
+        fprintf(stderr, "Usage: filter -[gsrb] {infile} {outfile}\n\n");
+        fprintf(stderr, "   -g  converts the image to black and white version\n");
+        fprintf(stderr, "   -s  converts the image to sepia version\n");
+        fprintf(stderr, "   -r  reflects the image horizontally\n");
+        fprintf(stderr, "   -b  blurs the image\n");
         return 3;
     }
 

@@ -1,16 +1,15 @@
 import argparse
 import csv
-from sys import exit
 
 
-def find_num(str, find):
+def find_num(dna_str, find):
     num = 0
-    old = str.find(find)
+    old = dna_str.find(find)
     count = 0
     result = 0
     flag = 0
     while 1:
-        num = str.find(find, num + flag)
+        num = dna_str.find(find, num + flag)
         flag = 1
         if num < 0:
             break
@@ -25,7 +24,7 @@ def find_num(str, find):
     return result
 
 
-def main(database, dna_file):
+def main(data, dna_file):
     dna = ''
 
     try:
@@ -36,7 +35,7 @@ def main(database, dna_file):
         print('ERROR: ', e)
 
     try:
-        with open(database, 'r') as file:
+        with open(data, 'r') as file:
             reader = csv.reader(file)
             headers = next(reader)
             people = []
@@ -56,7 +55,6 @@ def main(database, dna_file):
 
                 if counter == len(dna_list):
                     return man[0]
-                    exit(0)
             return 'No match'
 
     except Exception as e:
@@ -65,7 +63,7 @@ def main(database, dna_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DNA', usage='python dna.py data.csv sequence.txt')
-    parser.add_argument('database', type=str, action='store')
+    parser.add_argument('data', type=str, action='store')
     parser.add_argument('dna_file', type=str, action='store')
     args = parser.parse_args()
-    print(main(args.database, args.dna_file))
+    print(main(args.data, args.dna_file))
